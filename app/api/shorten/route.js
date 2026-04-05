@@ -16,14 +16,14 @@ export async function POST(req) {
     const shortId = nanoid(6);
     const linkData = {
       longUrl: url,
-      title: title || "Exclusive Content",
-      description: desc || "Click to see more",
+      title: title || "Exclusive Link",
+      description: desc || "Click to view content",
       image: img || "https://vercel.com/og-image.png"
     };
 
     await redis.set(shortId, JSON.stringify(linkData));
     return NextResponse.json({ shortId });
   } catch (error) {
-    return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Database Error' }, { status: 500 });
   }
 }
