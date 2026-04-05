@@ -1,13 +1,8 @@
 export const metadata = {
   title: 'Link Shortener',
-  description: 'Easy link shortener created with Next.js',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>{children}</body>
