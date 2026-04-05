@@ -6,15 +6,20 @@ export default function Home() {
   const [shortUrl, setShortUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch('/api/shorten', {
-      method: 'POST',
-      body: JSON.stringify({ url }),
-    });
-    const data = await res.json();
-    setShortUrl(`${window.location.origin}/${data.shortId}`);
+    try {
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      setShortUrl(`${window.location.origin}/${data.shortId}`);
+    } catch (err) {
+      alert("Error creating link");
+    }
     setLoading(false);
   };
 
