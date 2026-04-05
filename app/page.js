@@ -9,42 +9,51 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch('/api/shorten', {
-      method: 'POST',
-      body: JSON.stringify(formData),
-    });
-    const data = await res.json();
-    if (data.shortId) setShortUrl(`${window.location.origin}/${data.shortId}`);
+    try {
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.shortId) {
+        setShortUrl(`${window.location.origin}/${data.shortId}`);
+      } else {
+        alert("Error: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Check your internet or Vercel Environment Variables");
+    }
     setLoading(false);
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-6">
-      <div className="w-full max-w-md bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl">
-        <h1 className="text-2xl font-bold mb-6 text-center text-blue-400">Advanced Link Shortener</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="url" placeholder="Long URL (Required)" required className="w-full p-3 rounded bg-slate-900 border border-slate-700"
-            onChange={e => setFormData({...formData, url: e.target.value})} />
-          
-          <input type="text" placeholder="Custom Title (for Social Media)" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
-            onChange={e => setFormData({...formData, title: e.target.value})} />
-          
-          <input type="text" placeholder="Short Description" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
-            onChange={e => setFormData({...formData, desc: e.target.value})} />
-          
-          <input type="url" placeholder="Preview Image URL (https://...)" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
-            onChange={e => setFormData({...formData, img: e.target.value})} />
+  const inputStyle = {
+    width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px',
+    border: '1px solid #334155', backgroundColor: '#1e293b', color: 'white', boxSizing: 'border-box'
+  };
 
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 p-3 rounded font-bold hover:bg-blue-700 transition">
-            {loading ? 'Creating...' : 'Create Social Link'}
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px' }}>
+      <div style={{ backgroundColor: '#1e293b', padding: '30px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', width: '100%', maxWidth: '400px', border: '1px solid #334155' }}>
+        <h1 style={{ textAlign: 'center', color: '#38bdf8', marginBottom: '10px' }}>QuickLink Pro</h1>
+        <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '14px', marginBottom: '25px' }}>Short links with social previews</p>
+        
+        <form onSubmit={handleSubmit}>
+          <input type="url" placeholder="Paste Long URL *" required style={inputStyle} onChange={e => setFormData({...formData, url: e.target.value})} />
+          <input type="text" placeholder="Social Title" style={inputStyle} onChange={e => setFormData({...formData, title: e.target.value})} />
+          <input type="text" placeholder="Social Description" style={inputStyle} onChange={e => setFormData({...formData, desc: e.target.value})} />
+          <input type="url" placeholder="Social Image URL (https://...)" style={inputStyle} onChange={e => setFormData({...formData, img: e.target.value})} />
+
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Generating...' : 'Create Social Link'}
           </button>
         </form>
 
         {shortUrl && (
-          <div className="mt-6 p-4 bg-slate-900 rounded border border-green-500">
-            <p className="text-sm text-green-400 mb-2">Success! Share this link:</p>
-            <a href={shortUrl} target="_blank" className="text-white underline break-all">{shortUrl}</a>
+          <div style={{ marginTop: '25px', padding: '15px', backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid #2563eb', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: '#38bdf8', margin: '0 0 10px 0' }}>YOUR SHORT LINK:</p>
+            <a href={shortUrl} target="_blank" style={{ color: 'white', fontWeight: 'bold', wordBreak: 'break-all' }}>{shortUrl}</a>
+            <button onClick={() => {navigator.clipboard.writeText(shortUrl); alert("Copied!")}} style={{ display: 'block', margin: '10px auto 0', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}>Copy Link</button>
           </div>
         )}
       </div>
