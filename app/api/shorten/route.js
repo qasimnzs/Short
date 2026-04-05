@@ -11,19 +11,19 @@ const redis = new Redis({
 export async function POST(req) {
   try {
     const { url, title, desc, img } = await req.json();
-    if (!url) return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+    if (!url) return NextResponse.json({ error: 'URL required' }, { status: 400 });
 
     const shortId = nanoid(6);
     const linkData = {
       longUrl: url,
-      title: title || "Shared via QuickLink",
-      description: desc || "Click to open the link",
-      image: img || "https://vercel.com/og-image.png" // Default image agar user na de
+      title: title || "Exclusive Content",
+      description: desc || "Click to see more",
+      image: img || "https://vercel.com/og-image.png"
     };
 
     await redis.set(shortId, JSON.stringify(linkData));
     return NextResponse.json({ shortId });
   } catch (error) {
-    return NextResponse.json({ error: 'Server Connection Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server Error' }, { status: 500 });
   }
 }
