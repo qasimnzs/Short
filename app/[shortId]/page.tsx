@@ -6,8 +6,9 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-export default async function RedirectPage({ params }: { params: { shortId: string } }) {
-  const shortId = params.shortId;
+export default async function RedirectPage({ params }: any) {
+  const { shortId } = params;
+  
   const longUrl: string | null = await redis.get(shortId);
 
   if (!longUrl) {
