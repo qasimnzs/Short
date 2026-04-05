@@ -2,51 +2,52 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [url, setUrl] = useState('');
+  const [formData, setFormData] = useState({ url: '', title: '', desc: '', img: '' });
   const [shortUrl, setShortUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      const res = await fetch('/api/shorten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
-      setShortUrl(`${window.location.origin}/${data.shortId}`);
-    } catch (err) {
-      alert("Error creating link");
-    }
+    const res = await fetch('/api/shorten', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if (data.shortId) setShortUrl(`${window.location.origin}/${data.shortId}`);
     setLoading(false);
   };
 
   return (
-    <main style={{ padding: '50px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h1>Link Shortener</h1>
-      <form onSubmit={handleSubmit}>
-        <input 
-          type="url" 
-          placeholder="Paste link here..." 
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          required
-          style={{ padding: '10px', width: '80%', marginBottom: '10px' }}
-        />
-        <br />
-        <button type="submit" disabled={loading} style={{ padding: '10px 20px', background: '#0070f3', color: 'white', border: 'none', borderRadius: '5px' }}>
-          {loading ? 'Creating...' : 'Shorten Link'}
-        </button>
-      </form>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-6">
+      <div className="w-full max-w-md bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl">
+        <h1 className="text-2xl font-bold mb-6 text-center text-blue-400">Advanced Link Shortener</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input type="url" placeholder="Long URL (Required)" required className="w-full p-3 rounded bg-slate-900 border border-slate-700"
+            onChange={e => setFormData({...formData, url: e.target.value})} />
+          
+          <input type="text" placeholder="Custom Title (for Social Media)" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
+            onChange={e => setFormData({...formData, title: e.target.value})} />
+          
+          <input type="text" placeholder="Short Description" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
+            onChange={e => setFormData({...formData, desc: e.target.value})} />
+          
+          <input type="url" placeholder="Preview Image URL (https://...)" className="w-full p-3 rounded bg-slate-900 border border-slate-700"
+            onChange={e => setFormData({...formData, img: e.target.value})} />
 
-      {shortUrl && (
-        <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
-          <p>Your Short Link:</p>
-          <a href={shortUrl} target="_blank">{shortUrl}</a>
-        </div>
-      )}
-    </main>
+          <button type="submit" disabled={loading} className="w-full bg-blue-600 p-3 rounded font-bold hover:bg-blue-700 transition">
+            {loading ? 'Creating...' : 'Create Social Link'}
+          </button>
+        </form>
+
+        {shortUrl && (
+          <div className="mt-6 p-4 bg-slate-900 rounded border border-green-500">
+            <p className="text-sm text-green-400 mb-2">Success! Share this link:</p>
+            <a href={shortUrl} target="_blank" className="text-white underline break-all">{shortUrl}</a>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
