@@ -9,6 +9,33 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+// YE FUNCTION BOTS KO PREVIEW DIKHAYEGA
+export async function generateMetadata({ params }) {
+  const { shortId } = params;
+  const rawData = await redis.get(shortId);
+  if (!rawData) return { title: "Not Found" };
+
+  const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+
+  return {
+    title: data.title,
+    description: data.description,
+    openGraph: {
+      title: data.title,
+      description: data.description,
+      images: [{ url: data.image }], // Aapka image URL yahan jayega
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: data.title,
+      description: data.description,
+      images: [data.image],
+    },
+  };
+}
+
+// YE FUNCTION INSAAN KO REDIRECT KAREGA
 export default async function RedirectPage({ params }) {
   const { shortId } = params;
   const rawData = await redis.get(shortId);
@@ -17,34 +44,21 @@ export default async function RedirectPage({ params }) {
 
   const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
   
-  // Bot Detection (WhatsApp, FB, Twitter, etc.)
   const userAgent = headers().get('user-agent') || '';
-  const isBot = /bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|telegrambot/i.test(userAgent);
+  // Crawler Bots ki list
+  const isBot = /bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot/i.test(userAgent);
 
-  // AGAR BOT HAI (Preview dikhao)
-  if (isBot) {
-    return (
-      <html>
-        <head>
-          <title>{data.title}</title>
-          <meta name="description" content={data.description} />
-          {/* Open Graph Tags */}
-          <meta property="og:title" content={data.title} />
-          <meta property="og:description" content={data.description} />
-          <meta property="og:image" content={data.image} />
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content={`https://${headers().get('host')}/${shortId}`} />
-          {/* Twitter Tags */}
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:image" content={data.image} />
-        </head>
-        <body>
-          <p>Redirecting to {data.longUrl}...</p>
-        </body>
-      </html>
-    );
+  // Agar Bot nahi hai toh Fauran Redirect (Direct Airbridge Style)
+  if (!isBot) {
+    redirect(data.longUrl);
   }
 
-  // AGAR INSAAN HAI (Direct Redirect - No Waiting)
-  redirect(data.longUrl);
+  // Agar Bot hai toh sirf blank page dikhao (Metadata upar generate ho chuka hai)
+  return (
+    <html>
+      <body>
+        <p>Redirecting to {data.longUrl}...</p>
+      </body>
+    </html>
+  );
 }
