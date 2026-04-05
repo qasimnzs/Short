@@ -1,5 +1,4 @@
 import { Redis } from '@upstash/redis';
-import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 const redis = new Redis({
@@ -20,6 +19,7 @@ export async function generateMetadata({ params }) {
       title: data.title,
       description: data.description,
       images: [data.image],
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
@@ -33,8 +33,20 @@ export async function generateMetadata({ params }) {
 export default async function RedirectPage({ params }) {
   const { shortId } = params;
   const rawData = await redis.get(shortId);
-  if (!rawData) redirect('/');
+  if (!rawData) return <div style={{color:'white', padding:'20px'}}>Link not found.</div>;
 
   const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-  redirect(data.longUrl);
+
+  return (
+    <div style={{ backgroundColor: '#0f172a', color: 'white', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h2>Redirecting you...</h2>
+        <p style={{ color: '#94a3b8' }}>Please wait a moment.</p>
+        {/* Automatic Redirect Script */}
+        <script dangerouslySetInnerHTML={{
+          __html: `setTimeout(() => { window.location.href = "${data.longUrl}"; }, 500);`
+        }} />
+      </div>
+    </div>
+  );
 }
