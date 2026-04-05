@@ -9,7 +9,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// YE FUNCTION BOTS KO PREVIEW DIKHAYEGA
+// BOTS KE LIYE METADATA (Width aur Height ke sath)
 export async function generateMetadata({ params }) {
   const { shortId } = params;
   const rawData = await redis.get(shortId);
@@ -23,7 +23,16 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: data.title,
       description: data.description,
-      images: [{ url: data.image }], // Aapka image URL yahan jayega
+      url: `https://${headers().get('host')}/${shortId}`,
+      siteName: 'QuickLink',
+      images: [
+        {
+          url: data.image,
+          width: 1200,  // Facebook ko ye sizes chahiye hote hain
+          height: 630,
+          alt: data.title,
+        },
+      ],
       type: 'website',
     },
     twitter: {
@@ -35,25 +44,22 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// YE FUNCTION INSAAN KO REDIRECT KAREGA
 export default async function RedirectPage({ params }) {
   const { shortId } = params;
   const rawData = await redis.get(shortId);
-
   if (!rawData) redirect('/');
 
   const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
   
   const userAgent = headers().get('user-agent') || '';
-  // Crawler Bots ki list
-  const isBot = /bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot/i.test(userAgent);
+  const isBot = /bot|facebookexternalhit|whatsapp|twitterbot|linkedinbot|telegrambot/i.test(userAgent);
 
-  // Agar Bot nahi hai toh Fauran Redirect (Direct Airbridge Style)
+  // AIRBRIDGE STYLE: Insaan ko direct redirect (0 delay)
   if (!isBot) {
     redirect(data.longUrl);
   }
 
-  // Agar Bot hai toh sirf blank page dikhao (Metadata upar generate ho chuka hai)
+  // Bots ko Metadata wala page dikhega
   return (
     <html>
       <body>
