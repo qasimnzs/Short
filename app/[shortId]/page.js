@@ -7,37 +7,34 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// Ye function Social Media Preview banata hai
 export async function generateMetadata({ params }) {
-  const data = await redis.get(params.shortId);
-  if (!data) return { title: "Not Found" };
+  const { shortId } = params;
+  const rawData = await redis.get(shortId);
+  if (!rawData) return { title: "Link Not Found" };
 
-  const link = typeof data === 'string' ? JSON.parse(data) : data;
-
+  const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
   return {
-    title: link.title,
-    description: link.description,
+    title: data.title,
+    description: data.description,
     openGraph: {
-      title: link.title,
-      description: link.description,
-      images: [link.image],
-      type: 'website',
+      title: data.title,
+      description: data.description,
+      images: [data.image],
     },
     twitter: {
       card: 'summary_large_image',
-      title: link.title,
-      description: link.description,
-      images: [link.image],
-    },
+      title: data.title,
+      description: data.description,
+      images: [data.image],
+    }
   };
 }
 
 export default async function RedirectPage({ params }) {
-  const data = await redis.get(params.shortId);
-  if (!data) redirect('/');
+  const { shortId } = params;
+  const rawData = await redis.get(shortId);
+  if (!rawData) redirect('/');
 
-  const link = typeof data === 'string' ? JSON.parse(data) : data;
-
-  // Real users ko redirect kar do
-  redirect(link.longUrl);
+  const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+  redirect(data.longUrl);
 }
